@@ -1,0 +1,310 @@
+---
+title: "DataViz Tutorial"
+author: "Harsh Sharda"
+date: "10/30/2019"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r message = FALSE, warning = FALSE}
+# Required packages
+library(tidyverse)
+library(dygraphs)
+library(xts)
+```
+<center> <h1> Dygraphs in R </h1> </center>
+
+### Time Series Data
+
+Ever thought of making a graph and analyzing your utility bills over the past 5 years? Did you notice any similarity in the peaks and troughs when you compare the graph of one year to the other? Did you notice that with time you might be paying more (at a particular month on average) than what you paid the previous couple of years? Most likely YES!
+
+Data points taken over time may have an internal structure. These can be trends, autocorrelation or just seasonal variation. To analyze such data, it is necessary to perform a Time Series analysis. 
+
+A Time series is a sequence of numerical data points in successive order (Kenton, W.). It is used in statistics, econometrics, weather forecasting, earthquake prediction etc. Further examples of time series data include average global temperature over the years, child mortality rate of a country for a time period.
+
+The unit for a time-series analysis can be decades, years, months, weeks or even days depending upon the kind of analysis. Time series analysis for example stock prices would have a unit or analysis of seconds. Similarly, avg temperatures of a country can be monthly/yearly.
+
+### Purpose of Visualizing Time Series Data:
+
+Visualizing time-series data helps in:
+
+* Differentiating:
+    + Trends
+    + Seasonality
+    + Cycle Variation
+    + Signal from white noise
+* Observing seasonality trends
+* Visualizing autocorrelation
+* Forecasting
+
+Before delving deeper into which kinds of graphs can be used for visualizing time-series, it is absolutely necessary to (Visualizing Time-Series Change):
+
+1. Understand and determine what kind of message does a data scientist/analyst wishes to convey from the visualization
+2. Choose the most effective method that might relay that message
+
+As said in the article, with tools such as Tableau and Microsoft Power BI, instead of searching for the right visualization to convey change one might choose graphs that would look the prettiest for their presentations or dashboards but might be inefficacious visualizations.
+
+Having said that, while creating time-series visualizations, one could keep in mind that the underlying data should showcase either of the following:
+
+* Actual value of units (˙Celsius)
+* Change in absolute units (∆˙Celsius)
+* Percentage change (%)
+* Change in a specific point in time
+
+
+### Visualizing Time Series Data (Bethany.):
+
+* Line Graph
+* Stacked Area Chart
+* Bar Charts
+* Gantt Chart
+* Steam Chart 
+* Heat map
+* Nightingale's Rose Chart
+
+### Widely used Data Visualization Tools (thus far) for Time Series Data:
+
+* Tableau
+* R
+* Python
+* JavaScript
+
+For the purpose of this tutorial, we shall be focusing on a JavaScript visualization library called **Dygraphs**.
+
+### Dygraphs:
+
+Dygraphs is a fast, flexible open source JavaScript charting library. It allows users to explore and interpret dense data sets.
+
+It is an interactive graph visualization tool. 
+
+At this present day with Big Data, in order to enable users to drive actionable intelligence from their data, visualizations would need to achieve both form and functionality. In order to achieve that it is necessary to make use of a new genre of visualizations, Interactive Visualizations.
+
+Interactive Visualizations enables the display and intuitive understanding of multidimensional data by making the charts interactive for the users (Kerschberg, B., 2017)
+
+#### Dygraphs in R:
+
+The **dygraphs** package is an **R** package used as interface to the **dygraphs** JavaScriptcharting library. It provides rich facilities for charting time-series data in R, including (dygraphs for R):
+
+* Plots **xts** time series objects (or any object convertible to xts)
+    + **xts**: eXtensible Time Series object which contains information about the time series data that is to be visualized
+* Includes zoom/pan feature
+* Facilitates series/point highlighting
+* Provision of selection of a range
+* Axes can be configured (along with an addition to an optional second Y-axis)
+* Provisions the display of upper or lower bars of a series
+* Various graph overlays
+* Can be embedded within R Markdown documents and Shiny web applications
+
+
+#### Data being used:
+
+###### Sources: World Bank, GDP per rate; https://data.worldbank.org/indicator/NY.GDP.PCAP.PP.CD
+
+###### Licenses: Creative Commons Attribution 4.0 (CC-BY 4.0)
+
+
+```{r}
+# Reading the csv
+pivot_data_rate <- read.csv('../Data/gdp_pivot_rate.csv')
+
+# Converting DataFrame into a timeseries object
+pivot_data_rate_xts <- as.xts(x = pivot_data_rate[, -1], order.by = as.Date(pivot_data_rate$Year))
+```
+
+
+##### General Plot:
+
+Once the DataFrame is converted into a time-series object, dygraph can easily visualize the trends of GDP per capita (2011 - 2018)
+
+```{r}
+dygraph(pivot_data_rate_xts)
+```
+
+Interesting features to note:
+
+* You can click and drag to zoom, double-clicking will zoom you back out
+* Shift - drag will pan
+* As you pan through the graph, the legend will show the values (GDP rate in this example) for the time-series data
+
+
+#### Adding more features of the graph above
+
+```{r}
+dygraph(pivot_data_rate_xts, main = "Examining GDP Rates",
+        # Adding x-axis and y-axis labels in the dygraph
+        xlab = "Year: 2011 - 2018", ylab = "GDP Rates (in %)") %>%
+  
+  dyOptions(#Assiging colors to individual series
+            colors = c("lightseagreen","blue","red"),
+            
+            # Customizing the data points
+            drawPoints = TRUE, pointSize = 2, pointShape = "triangle",
+            
+            # Adding decimal points to the Y-axis
+            sigFigs = 3,
+            
+            # Customizing the Axes 
+            axisLineWidth = 1.5, axisLineColor = "gray",gridLineColor = "lightblue",
+            axisLabelFontSize = 12) %>% 
+  
+  # Configuring options for dygraph series legend
+  dyLegend(show = "follow")
+```
+
+`dyOptions` can be used to specify options to a dygraph plot (dyOptions Documentation)
+
+Most used options are (not mentioned in the next code chunk):
+
+1. `stackedGraph`: If set, stack series on top of one another rather than drawing them independently. The first series specified in the input data will wind up on top of the chart and the last will be on bottom
+
+2. `fillGraph`: To specify if the area under the graph be filled
+
+3. `fillAlpha`: Set the transparency for filled regions of the plot. Closer to 0.0 means no fill, whereas a value of 1.0 means that the fill will be as dark as the line of the series itself 
+
+4. `stepPlot`: Displays the graph as a step plot instead of a line plot. This option can also be set on a per-series basis
+
+5. `stemPlot`: Displays the graph as a stem plot instead of a line plot. This option can also be set on a per-series basis
+
+6. `pointSize`: This sets the size of the dot to draw on each point in pixels. This option can also be set on a per-series basis
+
+7. `pointShape`: The shape of the dot to draw. Can be one of the following: "dot" (default), "triangle", "square", "diamond", "pentagon", "hexagon", "circle", "star", "plus" or "ex". This option can also be set on a per-series basis
+
+8. `strokeWidth`: The width of the lines connecting data points. This can be used to increase the contrast or some graphs. This option can also be set on a per-series basis
+
+9. `strokePattern`: A custom pattern array where the even index is a draw and odd is a space in pixels. If null then it draws a solid line. The array should have a even length as any odd length array could be expressed as a smaller even length array. This is used to create dashed lines. This option can also be set on a per-series basis.
+
+10. `drawXAxis`: Whether to draw the x-axis. Setting this to false also prevents x-axis ticks from being drawn and reclaims the space for the chart grid/lines.
+
+11. `drawYAxis`: Whether to draw the y-axis. Setting this to false also prevents y-axis ticks from being drawn and reclaims the space for the chart grid/lines.
+
+`dyHighlight` can be used to customize mouse-over highligting on a particular data series
+
+```{r}
+
+dygraph(pivot_data_rate_xts, main = "Examining GDP Rates", xlab = "Year: 2011 - 2018", ylab = "GDP Rates (in %)") %>%
+  
+  dyOptions(
+            colors = c("lightseagreen","blue","red"), 
+            drawPoints = TRUE, pointSize = 2, pointShape = "dot",
+            sigFigs = 3,
+            axisLineWidth = 1.5, axisLineColor = "gray",gridLineColor = "lightblue",
+            axisLabelFontSize = 12) %>%
+  
+  dyLegend(show = "always") %>%
+  
+  dyHighlight(# Size of pixels of the dot drawn over the highlighed points
+              highlightCircleSize = 5,
+              
+              # This setting is applied to the series closest to the mouse pointer
+              highlightSeriesOpts = list(strokeWidth = 3),
+              
+              # Setting the transparency of the non-chosen series
+              highlightSeriesBackgroundAlpha = 0.2,
+              
+              # To hide the highlighting effect when the mouse leaves the charted area
+              hideOnMouseOut = FALSE)
+```
+
+
+`dyGroup` can be used to add a data series "group" to a `dygraph` plot. If not used, all the individual data series unless specified will use the global setting (as determined by `dyOptions`)
+
+```{r}
+dygraph(pivot_data_rate_xts, main = "Examining GDP Rates", xlab = "Year: 2011 - 2018", ylab = "GDP Rates (in %)") %>%
+  
+  # Adding China and India to a group and applying customizations
+  dyGroup(c("China","India"), color = c("orchid","firebrick"), strokeWidth = 2) %>%
+  
+  # Applying settings to the United States series
+  dySeries("United.States", stepPlot = TRUE, fillGraph = TRUE) %>%
+  
+  # By setting show = follow the legend follows the mouse pointer
+  dyLegend(show = "follow") %>%
+  
+  dyHighlight(highlightCircleSize = 5,
+              highlightSeriesOpts = list(strokeWidth = 3),
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>%
+  dyOptions(sigFigs = 3, fillAlpha = 0.3)
+```
+
+##### Setting a secondary Y-axis:
+
+NOTE: Setting a secondary axis might cause confusion to certain viewers when they compare magnitudes of time series data on the other axis
+
+```{r}
+dygraph(pivot_data_rate_xts, main = "Examining GDP Rates", xlab = "Year: 2011 - 2018", ylab = "GDP Rates (in %)") %>%
+  
+  dyGroup(c("China","India"), color = c("orchid","firebrick"), strokeWidth = 2) %>%
+  
+  # Setting axis = "y2" sets United States on the secondary Y-axis
+  dySeries("United.States", stepPlot = TRUE, fillGraph = TRUE, axis = "y2") %>%
+  
+  # Adding labels and ticks to the secondary Y-axis
+  dyAxis("y2", label = "GDP Rate (US)", independentTicks = TRUE) %>%
+  
+  dyLegend(show = "always") %>%
+  
+  dyHighlight(highlightCircleSize = 5,
+              highlightSeriesOpts = list(strokeWidth = 3),
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>%
+  dyOptions(sigFigs = 3, fillAlpha = 0.3)
+```
+
+##### Adding a Range Selector:
+`dyRangeSelector` adds a range selector at the bottom of the chart that allows users to PAN and ZOOM to various date ranges
+
+
+```{r}
+dygraph(pivot_data_rate_xts, main = "Examining GDP Rates", xlab = "Year: 2011 - 2018", ylab = "GDP Rates (in %)") %>%
+  
+  dyGroup(c("China","India"), color = c("orchid","firebrick"), strokeWidth = 2) %>%
+  
+  dySeries("United.States", stepPlot = TRUE, fillGraph = TRUE, axis = "y2") %>%
+  
+  dyAxis("y2", label = "GDP Rate (US)", independentTicks = TRUE) %>%
+  
+  dyLegend(show = "always") %>%
+  
+  dyHighlight(highlightCircleSize = 5,
+              highlightSeriesOpts = list(strokeWidth = 3),
+              highlightSeriesBackgroundAlpha = 0.2,
+              hideOnMouseOut = FALSE) %>%
+  
+  dyOptions(sigFigs = 3, fillAlpha = 0.3) %>%
+  
+  # Setting a 2-year Window in the Range Selector
+  dyRangeSelector(dateWindow = c("2013-01-01", "2015-01-01"))
+```
+
+##### More Features:
+
+The `dygraphs` package in R offers more features for representing time-series data. They are as follows:
+
+1. `dyCandlestick`: This function allows the user to visualize stock market data. `compress` function can additionally used to compress chart data annualy, monthly, weekly etc.
+
+2. `useDataTimezone`: For visualizing data using the time zone defined within the underlying **xts** object
+
+3. `dyAnnotation`: For adding annotations to individual points in the plot
+
+4. `dyShading`: This function would add a shading effect to the graph background for one or more time ranges (dygraphs for R)
+
+
+#### Bibliography:
+
+Kenton, W. (2019, October 3). Understanding Time Series. Retrieved October 30, 2019, from https://www.investopedia.com/terms/t/timeseries.asp
+
+Bethany. (2019, August 7). Visualizing Time Series Data: 7 Types of Temporal Visualizations - Atlan: Humans of Data. Retrieved October 31, 2019, from https://humansofdata.atlan.com/2016/11/visualizing-time-series-data/
+
+dygraphs for R. Retrieved October 31, 2019, from https://rstudio.github.io/dygraphs/index.html
+
+dyOptions Documentation. Retrieved October 31, 2019, from https://www.rdocumentation.org/packages/dygraphs/versions/1.1.1.6/topics/dyOptions
+
+Visualizing Time-Series Change. Retrieved November 1, 2019, from https://www.kdnuggets.com/2017/03/visualizing-time-series-change.html
+
+Kerschberg, B. (2017, June 26). Five Key Properties of Interactive Data Visualization. Retrieved November 1, 2019, from https://www.forbes.com/sites/benkerschberg/2014/04/30/five-key-properties-of-interactive-data-visualization/#50a02c53589e
